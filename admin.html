@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phantom Admin Panel 🔐</title>
+  <style>
+    body {
+      background-color: #0b0b0b;
+      color: #00ffc3;
+      font-family: monospace;
+      padding: 30px;
+    }
+    input[type="password"] {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #00ffc3;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    pre {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 15px;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+    }
+    #log-container {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>👁️ Phantom Obfuscator Admin</h1>
+  <p>Enter admin password to unlock obfuscation logs:</p>
+
+  <input type="password" id="password" placeholder="Enter password..." />
+  <button onclick="unlock()">Unlock</button>
+
+  <div id="log-container" style="display:none">
+    <h2>📦 Obfuscation Logs</h2>
+    <div id="logs"></div>
+  </div>
+
+  <script>
+    const correctPassword = "phantom2025";
+
+    function unlock() {
+      const input = document.getElementById("password").value;
+      if (input === correctPassword) {
+        document.getElementById("log-container").style.display = "block";
+        showLogs();
+      } else {
+        alert("❌ Incorrect password. Access denied.");
+      }
+    }
+
+    function getIP(callback) {
+      fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => callback(data.ip))
+        .catch(() => callback("Unavailable"));
+    }
+
+    function showLogs() {
+      const logs = JSON.parse(localStorage.getItem("phantom_logs") || "[]");
+      const logDiv = document.getElementById("logs");
+      logDiv.innerHTML = "";
+      logs.reverse().forEach(log => {
+        const block = document.createElement("pre");
+        const time = new Date(log.time).toLocaleString();
+        const input = log.input || "(empty)";
+        const output = log.output || "(empty)";
+        const ip = log.ip || "Unknown";
+        block.textContent = `📅 ${time}\n🌐 IP: ${ip}\n\n🔓 INPUT:\n${input}\n\n🔐 OUTPUT:\n${output}`;
+        logDiv.appendChild(block);
+      });
+    }
+
+    // Enhance: Store IP when obfuscating (only works if called from obfuscator page)
+    window.addEventListener("storage", () => {
+      const logs = JSON.parse(localStorage.getItem("phantom_logs") || "[]");
+      const last = logs[logs.length - 1];
+      if (last && !last.ip) {
+        getIP(ip => {
+          last.ip = ip;
+          logs[logs.length - 1] = last;
+          localStorage.setItem("phantom_logs", JSON.stringify(logs));
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+
